@@ -1,0 +1,71 @@
+generator client {
+  provider = "prisma-client-js"
+  previewFeatures = ["clientExtensions"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model customer_request {
+  id                    String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  customer_id           String             @db.Uuid
+  satellite_operator_id String             @db.Uuid
+  service               String             @db.VarChar(255)
+  status                String             @db.VarChar(255)
+  created_at            DateTime           @default(now()) @db.Timestamp(6)
+  updated_at            DateTime           @default(now()) @db.Timestamp(6)
+  user                  user               @relation(fields: [customer_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  satellite_operator    satellite_operator @relation(fields: [satellite_operator_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model operation_plan {
+  id                    String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  satellite_operator_id String             @db.Uuid
+  mission_analyst_id    String             @db.Uuid
+  name                  String             @db.VarChar(255)
+  status                String             @db.VarChar(255)
+  created_at            DateTime           @default(now()) @db.Timestamp(6)
+  updated_at            DateTime           @default(now()) @db.Timestamp(6)
+  user                  user               @relation(fields: [mission_analyst_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  satellite_operator    satellite_operator @relation(fields: [satellite_operator_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model satellite_data {
+  id                    String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  satellite_operator_id String             @db.Uuid
+  data                  String             @db.VarChar(255)
+  created_at            DateTime           @default(now()) @db.Timestamp(6)
+  updated_at            DateTime           @default(now()) @db.Timestamp(6)
+  satellite_operator    satellite_operator @relation(fields: [satellite_operator_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model satellite_operator {
+  id               String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  description      String?            @db.VarChar(255)
+  image            String?            @db.VarChar(255)
+  name             String             @db.VarChar(255)
+  created_at       DateTime           @default(now()) @db.Timestamp(6)
+  updated_at       DateTime           @default(now()) @db.Timestamp(6)
+  user_id          String             @db.Uuid
+  tenant_id        String             @db.VarChar(255)
+  customer_request customer_request[]
+  operation_plan   operation_plan[]
+  satellite_data   satellite_data[]
+  user             user               @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model user {
+  id                 String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email              String               @unique @db.VarChar(255)
+  firstName          String?              @db.VarChar(255)
+  lastName           String?              @db.VarChar(255)
+  roq_user_id        String               @db.VarChar(255)
+  tenant_id          String               @db.VarChar(255)
+  created_at         DateTime             @default(now()) @db.Timestamp(6)
+  updated_at         DateTime             @default(now()) @db.Timestamp(6)
+  customer_request   customer_request[]
+  operation_plan     operation_plan[]
+  satellite_operator satellite_operator[]
+}
